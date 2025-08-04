@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Quản lý học phí</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: 18px auto;
+      background: #fff;
+      padding: 18px 10px;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.10);
+      display: none;
+    }
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 20px 8px 6px 8px;
+      max-width: 500px;
+      margin: auto;
+    }
+    .menu button {
+      font-size: 19px;
+      padding: 17px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #4CAF50, #43a047);
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 8px 16px rgba(76,175,80,0.08);
+      transition: transform .17s, box-shadow .17s, background .17s;
+    }
+    .menu button:active {
+      background: #388E3C;
+      transform: scale(0.97);
+    }
+    .menu button:hover {
+      box-shadow: 0 2px 18px rgba(68,183,72,0.13);
+      background: #43a047;
+    }
+    input, select, button.action {
+      width: 100%;
+      padding: 13px;
+      margin-top: 13px;
+      border-radius: 7px;
+      border: 1px solid #bbb;
+      font-size: 16px;
+    }
+    button.action {
+      background: #2196F3;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 17px;
+      font-weight: bold;
+      transition: background .17s, transform .17s, box-shadow .17s;
+      box-shadow: 0 4px 12px rgba(33,150,243,0.11);
+    }
+    button.action:active {
+      background: #1976D2;
+      transform: scale(.97);
+    }
+    button.loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    button.loading::after {
+      content: '';
+      position: absolute;
+      top: 50%; right: 18px;
+      width: 18px; height: 18px;
+      border: 2.5px solid #fff;
+      border-top: 2.5px solid #2196F3;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: translateY(-50%) rotate(0deg);}
+      100% { transform: translateY(-50%) rotate(360deg);}
+    }
+    #log {
+      margin-top: 16px;
+      padding: 12px;
+      background: #e8f5e9;
+      border-radius: 6px;
+      font-size: 15px;
+      word-break: break-word;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 8px 5px;
+      text-align: center;
+      font-size: 15px;
+    }
+    .unpaid {
+      color: #e53935;
+      font-weight: bold;
+    }
+    /* --- Card list (1 cột dọc mobile) --- */
+    .student-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .student-cards .card {
+      background: #f4fff7;
+      border: 1px solid #b0dab5;
+      border-radius: 9px;
+      padding: 17px 10px 11px 14px;
+      box-shadow: 0 2px 9px rgba(76,175,80,0.09);
+      font-size: 16.2px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .student-cards .card small {
+      margin-top: 2px;
+      font-size: 14px;
+      color: #4caf50;
+      font-weight: 600;
+    }
+    @media (max-width: 600px) {
+      .container, .menu { max-width: 100vw; }
+      html, body { background: #f3f3f3; }
+      .student-cards .card { border-radius: 13px; font-size: 15.5px; }
+    }
+    @media (max-width: 400px) {
+      .menu button { font-size: 16px; padding: 14px; }
+      input, select, button.action { font-size: 14.5px; }
+      .student-cards .card { font-size: 14.5px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="menu">
+    <button onclick="showSection('manage')">Quản lý học phí</button>
+    <button onclick="showSection('pay')">Thu học phí</button>
+    <button onclick="showSection('add')">Thêm học sinh</button>
+  </div>
+
+  <!-- QUẢN LÝ -->
+  <div class="container" id="manage">
+    <h2>Quản lý học phí theo tháng &amp; năm học</h2>
+    <select id="yearSelect">
+      <option value="">-- Chọn năm học --</option>
+      <option value="2025-2026">2025-2026</option>
+      <option value="2026-2027">2026-2027</option>
+      <option value="2027-2028">2027-2028</option>
+    </select>
+    <select id="viewMonth">
+      <option value="">-- Chọn tháng --</option>
+      <option value="1">Tháng 1</option>
+      <option value="2">Tháng 2</option>
+      <option value="3">Tháng 3</option>
+      <option value="4">Tháng 4</option>
+      <option value="5">Tháng 5</option>
+      <option value="6">Tháng 6</option>
+      <option value="7">Tháng 7</option>
+      <option value="8">Tháng 8</option>
+      <option value="9">Tháng 9</option>
+      <option value="10">Tháng 10</option>
+      <option value="11">Tháng 11</option>
+      <option value="12">Tháng 12</option>
+    </select>
+    <button class="action" onclick="viewFees()">Xem học phí</button>
+    <div id="feeResults"></div>
+  </div>
+
+  <!-- THU HỌC PHÍ -->
+  <div class="container" id="pay">
+    <h2>Thu học phí</h2>
+    <select id="payYear">
+      <option value="">-- Chọn năm học --</option>
+      <option value="2025-2026">2025-2026</option>
+      <option value="2026-2027">2026-2027</option>
+      <option value="2027-2028">2027-2028</option>
+    </select>
+    <select id="studentSelect">
+      <option value="">-- Chọn học sinh --</option>
+    </select>
+    <select id="month">
+      <option value="">-- Chọn tháng --</option>
+      <option value="1">Tháng 1</option>
+      <option value="2">Tháng 2</option>
+      <option value="3">Tháng 3</option>
+      <option value="4">Tháng 4</option>
+      <option value="5">Tháng 5</option>
+      <option value="6">Tháng 6</option>
+      <option value="7">Tháng 7</option>
+      <option value="8">Tháng 8</option>
+      <option value="9">Tháng 9</option>
+      <option value="10">Tháng 10</option>
+      <option value="11">Tháng 11</option>
+      <option value="12">Tháng 12</option>
+    </select>
+    <input type="number" id="amount" placeholder="Số tiền (VND)">
+    <button class="action" onclick="submitData(this)">Ghi học phí</button>
+    <div id="log"></div>
+  </div>
+
+  <!-- THÊM HỌC SINH -->
+  <div class="container" id="add">
+    <h2>Thêm học sinh</h2>
+    <input type="text" id="newName" placeholder="Tên học sinh">
+    <input type="text" id="newClass" placeholder="Lớp">
+    <button class="action" onclick="addStudent()">Lưu học sinh</button>
+    <div class="student-cards" id="studentList"></div>
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyAgBobw-D_eZvb4zDO0sgd1R0cdUU0O6WVFreaOnFghRPTDUzdK8KOoC0caP5h_sr4/exec';
+
+    function showSection(id) {
+      ['manage','pay','add'].forEach(s=>{
+        document.getElementById(s).style.display = s===id?'block':'none';
+      });
+      if(id==='add') displayCurrentStudents();
+      if(id==='pay') loadStudentOptionsFromSheet();
+    }
+
+    function loadStudentOptionsFromSheet() {
+      fetch(`${scriptURL}?action=getStudents`)
+        .then(r=>r.json())
+        .then(data=>{
+          const sel = document.getElementById('studentSelect');
+          sel.innerHTML = '<option value="">-- Chọn học sinh --</option>';
+          data.forEach(s=>{
+            const o=document.createElement('option');
+            o.value=s.name; o.textContent=`${s.name} (${s.class})`;
+            sel.appendChild(o);
+          });
+        });
+    }
+
+    function displayCurrentStudents() {
+      fetch(`${scriptURL}?action=getStudents`)
+        .then(r=>r.json())
+        .then(data=>{
+          const wrap = document.getElementById('studentList');
+          wrap.innerHTML = '';
+          data.forEach(s=>{
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `<strong>${s.name}</strong><small>Lớp ${s.class}</small>`;
+            wrap.appendChild(card);
+          });
+        });
+    }
+
+    function addStudent() {
+      const name=document.getElementById('newName').value.trim();
+      const cls =document.getElementById('newClass').value.trim();
+      if(!name||!cls) return alert('Nhập đầy đủ tên & lớp!');
+      fetch(scriptURL, {
+        method:'POST',
+        body:new URLSearchParams({ action:'addStudent', name, cls })
+      }).then(()=>{
+        alert('✅ Đã thêm học sinh');
+        document.getElementById('newName').value='';
+        document.getElementById('newClass').value='';
+        displayCurrentStudents();
+      });
+    }
+
+    function submitData(btn) {
+      const year  = document.getElementById('payYear').value;
+      const name  = document.getElementById('studentSelect').value;
+      const month = document.getElementById('month').value;
+      const amt   = document.getElementById('amount').value.trim();
+      if(!year||!name||!month||!amt) return alert('Chọn đủ năm, học sinh, tháng & tiền!');
+      btn.classList.add('loading');
+      fetch(`${scriptURL}?action=getStudents`)
+        .then(r=>r.json())
+        .then(list => {
+          const stu = list.find(s=>s.name===name);
+          if(!stu) throw 'Học sinh không tồn tại';
+          return fetch(scriptURL, {
+            method:'POST',
+            body:new URLSearchParams({
+              action:'submitFee',
+              name:stu.name, cls:stu.class,
+              month, year, amount:amt
+            })
+          }).then(()=>stu);
+        })
+        .then(stu=>{
+          document.getElementById('log').innerHTML =
+            `✅ Đã thu học phí tháng <strong>${month}</strong> năm học <strong>${year}</strong>,<br>`+
+            `số tiền <strong>${amt} VND</strong><br>– Học sinh: <strong>${stu.name} (${stu.class})</strong>`;
+        })
+        .catch(e=>alert('❌ '+e))
+        .finally(()=>btn.classList.remove('loading'));
+    }
+
+    function viewFees() {
+      const year  = document.getElementById('yearSelect').value;
+      const month = document.getElementById('viewMonth').value;
+      if(!year||!month) return alert('Chọn năm học & tháng!');
+      fetch(`${scriptURL}?action=viewFees&year=${encodeURIComponent(year)}&month=${month}`)
+        .then(r=>r.json())
+        .then(data=>{
+          let html = '<table><tr><th>Học sinh</th><th>Lớp</th><th>Trạng thái</th><th>Ngày đóng</th></tr>';
+          fetch(`${scriptURL}?action=getStudents`)
+            .then(r=>r.json())
+            .then(list=>{
+              list.forEach(s=>{
+                const rec = data.find(d=>d.name===s.name && d.class===s.class);
+                html += `<tr>
+                  <td>${s.name}</td>
+                  <td>${s.class}</td>
+                  <td>${rec?rec.amount+' VND':'<span class="unpaid">❌ Chưa đóng</span>'}</td>
+                  <td>${rec?rec.date:'-'}</td>
+                </tr>`;
+              });
+              html += '</table>';
+              document.getElementById('feeResults').innerHTML = html;
+            });
+        });
+    }
+
+    showSection('manage');
+  </script>
+</body>
+</html>
