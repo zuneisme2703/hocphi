@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Quản lý học phí</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * { 
+      box-sizing: border-box; 
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .header {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      margin-bottom: 30px;
+    }
+    
+    .header h1 {
+      text-align: center;
+      color: white;
+      font-size: 28px;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .container {
+      max-width: 600px;
+      margin: 0 auto 30px;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(20px);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      border: 1px solid rgba(255,255,255,0.3);
+      display: none;
+      transition: all 0.3s ease;
+    }
+    
+    .container.active {
+      display: block;
+      animation: slideIn 0.4s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 15px;
+      padding: 0 20px;
+      max-width: 600px;
+      margin: 0 auto 30px;
+    }
+    
+    .menu button {
+      font-size: 16px;
+      padding: 18px 20px;
+      border: none;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.9);
+      color: #4c6ef5;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: inherit;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    
+    .menu button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      background: rgba(255,255,255,1);
+    }
+    
+    .menu button.active {
+      background: linear-gradient(135deg, #4c6ef5, #3b82f6);
+      color: white;
+      transform: translateY(-2px);
+    }
+    
+    .menu button:active {
+      transform: translateY(0);
+    }
+    
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 25px;
+      text-align: center;
+      position: relative;
+    }
+    
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(135deg, #4c6ef5, #3b82f6);
+      border-radius: 2px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #4a5568;
+      font-size: 14px;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 16px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: #4c6ef5;
+      box-shadow: 0 0 0 3px rgba(76,110,245,0.1);
+      transform: translateY(-1px);
+    }
+    
+    button.action {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #4c6ef5, #3b82f6);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(76,110,245,0.3);
+      margin-top: 10px;
+    }
+    
+    button.action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px rgba(76,110,245,0.4);
+    }
+    
+    button.action:active {
+      transform: translateY(0);
+    }
+    
+    button.loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.8;
+    }
+    
+    button.loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      from { transform: translateY(-50%) rotate(0deg); }
+      to { transform: translateY(-50%) rotate(360deg); }
+    }
+    
+    #log {
+      margin-top: 20px;
+      padding: 16px;
+      background: linear-gradient(135deg, #d4edda, #c3e6cb);
+      border: 1px solid #c3e6cb;
+      border-radius: 12px;
+      font-size: 15px;
+      word-break: break-word;
+      border-left: 4px solid #28a745;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    
+    th {
+      background: linear-gradient(135deg, #4c6ef5, #3b82f6);
+      color: white;
+      padding: 16px 12px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    td {
+      padding: 14px 12px;
+      text-align: center;
+      font-size: 14px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    
+    tr:hover {
+      background: #f8fafc;
+    }
+    
+    .unpaid {
+      color: #e53e3e;
+      font-weight: 600;
+      background: #fed7d7;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    
+    .paid {
+      color: #38a169;
+      font-weight: 600;
+      background: #c6f6d5;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    
+    .student-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 25px;
+    }
+    
+    .student-cards .card {
+      background: linear-gradient(135deg, #f7fafc, #edf2f7);
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .student-cards .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(135deg, #4c6ef5, #3b82f6);
+    }
+    
+    .student-cards .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      border-color: #4c6ef5;
+    }
+    
+    .student-cards .card .name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+    
+    .student-cards .card .class {
+      font-size: 14px;
+      color: #4c6ef5;
+      font-weight: 500;
+      background: rgba(76,110,245,0.1);
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .stat-number {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .alert {
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border-left: 4px solid;
+    }
+    
+    .alert.success {
+      background: #d4edda;
+      border-color: #28a745;
+      color: #155724;
+    }
+    
+    .alert.error {
+      background: #f8d7da;
+      border-color: #dc3545;
+      color: #721c24;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        margin: 0 15px 20px;
+        padding: 20px;
+        border-radius: 15px;
+      }
+      
+      .menu {
+        grid-template-columns: 1fr;
+        padding: 0 15px;
+      }
+      
+      .section-title {
+        font-size: 20px;
+      }
+      
+      .student-cards {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      th, td {
+        padding: 10px 8px;
+        font-size: 13px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .header h1 {
+        font-size: 22px;
+      }
+      
+      .menu button {
+        font-size: 14px;
+        padding: 14px 16px;
+      }
+      
+      input, select, button.action {
+        font-size: 14px;
+        padding: 14px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎓 Hệ thống quản lý học phí</h1>
+  </div>
+
+  <div class="menu">
+    <button onclick="showSection('manage')" id="btn-manage">📊 Quản lý học phí</button>
+    <button onclick="showSection('pay')" id="btn-pay">💰 Thu học phí</button>
+    <button onclick="showSection('add')" id="btn-add">👥 Thêm học sinh</button>
+  </div>
+
+  <!-- QUẢN LÝ -->
+  <div class="container" id="manage">
+    <h2 class="section-title">📊 Quản lý học phí theo tháng & năm học</h2>
+    
+    <div class="form-group">
+      <label class="form-label">Năm học</label>
+      <select id="yearSelect">
+        <option value="">-- Chọn năm học --</option>
+        <option value="2025-2026">2025-2026</option>
+        <option value="2026-2027">2026-2027</option>
+        <option value="2027-2028">2027-2028</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Tháng</label>
+      <select id="viewMonth">
+        <option value="">-- Chọn tháng --</option>
+        <option value="1">Tháng 1</option>
+        <option value="2">Tháng 2</option>
+        <option value="3">Tháng 3</option>
+        <option value="4">Tháng 4</option>
+        <option value="5">Tháng 5</option>
+        <option value="6">Tháng 6</option>
+        <option value="7">Tháng 7</option>
+        <option value="8">Tháng 8</option>
+        <option value="9">Tháng 9</option>
+        <option value="10">Tháng 10</option>
+        <option value="11">Tháng 11</option>
+        <option value="12">Tháng 12</option>
+      </select>
+    </div>
+    
+    <button class="action" onclick="viewFees()">🔍 Xem học phí</button>
+    <div id="feeResults"></div>
+  </div>
+
+  <!-- THU HỌC PHÍ -->
+  <div class="container" id="pay">
+    <h2 class="section-title">💰 Thu học phí</h2>
+    
+    <div class="form-group">
+      <label class="form-label">Năm học</label>
+      <select id="payYear">
+        <option value="">-- Chọn năm học --</option>
+        <option value="2025-2026">2025-2026</option>
+        <option value="2026-2027">2026-2027</option>
+        <option value="2027-2028">2027-2028</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Học sinh</label>
+      <select id="studentSelect">
+        <option value="">-- Chọn học sinh --</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Tháng</label>
+      <select id="month">
+        <option value="">-- Chọn tháng --</option>
+        <option value="1">Tháng 1</option>
+        <option value="2">Tháng 2</option>
+        <option value="3">Tháng 3</option>
+        <option value="4">Tháng 4</option>
+        <option value="5">Tháng 5</option>
+        <option value="6">Tháng 6</option>
+        <option value="7">Tháng 7</option>
+        <option value="8">Tháng 8</option>
+        <option value="9">Tháng 9</option>
+        <option value="10">Tháng 10</option>
+        <option value="11">Tháng 11</option>
+        <option value="12">Tháng 12</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Số tiền (VND)</label>
+      <input type="number" id="amount" placeholder="Nhập số tiền học phí">
+    </div>
+    
+    <button class="action" onclick="submitData(this)">💾 Ghi học phí</button>
+    <div id="log"></div>
+  </div>
+
+  <!-- THÊM HỌC SINH -->
+  <div class="container" id="add">
+    <h2 class="section-title">👥 Thêm học sinh mới</h2>
+    
+    <div class="form-group">
+      <label class="form-label">Tên học sinh</label>
+      <input type="text" id="newName" placeholder="Nhập tên học sinh">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Lớp</label>
+      <input type="text" id="newClass" placeholder="Nhập lớp học">
+    </div>
+    
+    <button class="action" onclick="addStudent()">✅ Lưu học sinh</button>
+    
+    <div class="student-cards" id="studentList"></div>
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyAgBobw-D_eZvb4zDO0sgd1R0cdUU0O6WVFreaOnFghRPTDUzdK8KOoC0caP5h_sr4/exec';
+
+    function showSection(id) {
+      // Remove active class from all containers and buttons
+      ['manage','pay','add'].forEach(s => {
+        const container = document.getElementById(s);
+        const button = document.getElementById(`btn-${s}`);
+        
+        if (s === id) {
+          container.style.display = 'block';
+          container.classList.add('active');
+          button.classList.add('active');
+        } else {
+          container.style.display = 'none';
+          container.classList.remove('active');
+          button.classList.remove('active');
+        }
+      });
+      
+      if (id === 'add') displayCurrentStudents();
+      if (id === 'pay') loadStudentOptionsFromSheet();
+    }
+
+    function loadStudentOptionsFromSheet() {
+      fetch(`${scriptURL}?action=getStudents`)
+        .then(r => r.json())
+        .then(data => {
+          const sel = document.getElementById('studentSelect');
+          sel.innerHTML = '<option value="">-- Chọn học sinh --</option>';
+          data.forEach(s => {
+            const o = document.createElement('option');
+            o.value = s.name; 
+            o.textContent = `${s.name} (${s.class})`;
+            sel.appendChild(o);
+          });
+        });
+    }
+
+    function displayCurrentStudents() {
+      fetch(`${scriptURL}?action=getStudents`)
+        .then(r => r.json())
+        .then(data => {
+          const wrap = document.getElementById('studentList');
+          wrap.innerHTML = '';
+          data.forEach(s => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+              <div class="name">${s.name}</div>
+              <div class="class">Lớp ${s.class}</div>
+            `;
+            wrap.appendChild(card);
+          });
+        });
+    }
+
+    function addStudent() {
+      const name = document.getElementById('newName').value.trim();
+      const cls = document.getElementById('newClass').value.trim();
+      
+      if (!name || !cls) {
+        showAlert('Vui lòng nhập đầy đủ tên và lớp!', 'error');
+        return;
+      }
+      
+      fetch(scriptURL, {
+        method: 'POST',
+        body: new URLSearchParams({ action: 'addStudent', name, cls })
+      }).then(() => {
+        showAlert('✅ Đã thêm học sinh thành công!', 'success');
+        document.getElementById('newName').value = '';
+        document.getElementById('newClass').value = '';
+        displayCurrentStudents();
+      }).catch(() => {
+        showAlert('❌ Có lỗi xảy ra, vui lòng thử lại!', 'error');
+      });
+    }
+
+    function submitData(btn) {
+      const year = document.getElementById('payYear').value;
+      const name = document.getElementById('studentSelect').value;
+      const month = document.getElementById('month').value;
+      const amt = document.getElementById('amount').value.trim();
+      
+      if (!year || !name || !month || !amt) {
+        showAlert('Vui lòng chọn đủ thông tin: năm học, học sinh, tháng và số tiền!', 'error');
+        return;
+      }
+      
+      btn.classList.add('loading');
+      
+      fetch(`${scriptURL}?action=getStudents`)
+        .then(r => r.json())
+        .then(list => {
+          const stu = list.find(s => s.name === name);
+          if (!stu) throw 'Học sinh không tồn tại';
+          
+          return fetch(scriptURL, {
+            method: 'POST',
+            body: new URLSearchParams({
+              action: 'submitFee',
+              name: stu.name, 
+              cls: stu.class,
+              month, year, 
+              amount: amt
+            })
+          }).then(() => stu);
+        })
+        .then(stu => {
+          document.getElementById('log').innerHTML = `
+            <div class="alert success">
+              ✅ <strong>Thành công!</strong><br>
+              Đã thu học phí tháng <strong>${month}</strong> năm học <strong>${year}</strong><br>
+              Số tiền: <strong>${Number(amt).toLocaleString('vi-VN')} VND</strong><br>
+              Học sinh: <strong>${stu.name} (${stu.class})</strong>
+            </div>
+          `;
+          document.getElementById('amount').value = '';
+        })
+        .catch(e => {
+          document.getElementById('log').innerHTML = `
+            <div class="alert error">
+              ❌ <strong>Lỗi:</strong> ${e}
+            </div>
+          `;
+        })
+        .finally(() => btn.classList.remove('loading'));
+    }
+
+    function viewFees() {
+      const year = document.getElementById('yearSelect').value;
+      const month = document.getElementById('viewMonth').value;
+      
+      if (!year || !month) {
+        showAlert('Vui lòng chọn năm học và tháng!', 'error');
+        return;
+      }
+      
+      fetch(`${scriptURL}?action=viewFees&year=${encodeURIComponent(year)}&month=${month}`)
+        .then(r => r.json())
+        .then(data => {
+          fetch(`${scriptURL}?action=getStudents`)
+            .then(r => r.json())
+            .then(list => {
+              let html = `
+                <div class="stats-grid">
+                  <div class="stat-card">
+                    <div class="stat-number">${list.length}</div>
+                    <div class="stat-label">Tổng học sinh</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-number">${data.length}</div>
+                    <div class="stat-label">Đã đóng</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-number">${list.length - data.length}</div>
+                    <div class="stat-label">Chưa đóng</div>
+                  </div>
+                </div>
+                <table>
+                  <tr>
+                    <th>Học sinh</th>
+                    <th>Lớp</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày đóng</th>
+                  </tr>
+              `;
+              
+              list.forEach(s => {
+                const rec = data.find(d => d.name === s.name && d.class === s.class);
+                html += `<tr>
+                  <td><strong>${s.name}</strong></td>
+                  <td>${s.class}</td>
+                  <td>${rec 
+                    ? `<span class="paid">${Number(rec.amount).toLocaleString('vi-VN')} VND</span>` 
+                    : '<span class="unpaid">❌ Chưa đóng</span>'
+                  }</td>
+                  <td>${rec ? rec.date : '-'}</td>
+                </tr>`;
+              });
+              
+              html += '</table>';
+              document.getElementById('feeResults').innerHTML = html;
+            });
+        })
+        .catch(() => {
+          showAlert('❌ Có lỗi xảy ra khi tải dữ liệu!', 'error');
+        });
+    }
+
+    function showAlert(message, type) {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert ${type}`;
+      alertDiv.innerHTML = message;
+      
+      // Insert at the beginning of the active container
+      const activeContainer = document.querySelector('.container[style*="block"]');
+      if (activeContainer) {
+        activeContainer.insertBefore(alertDiv, activeContainer.children[1]);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+          if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+          }
+        }, 5000);
+      }
+    }
+
+    // Initialize
+    showSection('manage');
+  </script>
+</body>
+</html>
