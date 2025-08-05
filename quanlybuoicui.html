@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>App Quản lý Buổi Học</title>
+  <style>
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(25px);
+      text-align: center;
+      padding: 25px;
+      color: white;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    .menu {
+      display: flex; 
+      flex-direction: column; 
+      gap: 20px;
+      padding: 40px 20px 20px;
+      max-width: 414px; 
+      margin: 0 auto;
+    }
+
+    .menu button {
+      padding: 20px 28px; 
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      border: none; 
+      border-radius: 16px;
+      cursor: pointer; 
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .menu button:nth-child(1) {
+      background: linear-gradient(135deg, #FF6B6B, #FF8E8E, #FFB6B6);
+    }
+    
+    .menu button:nth-child(2) {
+      background: linear-gradient(135deg, #4ECDC4, #44E4E4, #66F2F2);
+    }
+    
+    .menu button:nth-child(3) {
+      background: linear-gradient(135deg, #45B7D1, #66D1F0, #88E4FF);
+    }
+
+    .menu button:hover { 
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .menu button:active {
+      transform: translateY(-1px) scale(0.98);
+    }
+
+    .menu button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.6s ease;
+    }
+
+    .menu button:hover::before {
+      left: 100%;
+    }
+
+    .section {
+      display: none; 
+      max-width: 414px; 
+      margin: 0 auto 40px;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(25px);
+      padding: 30px;
+      border-radius: 24px; 
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .section h2 {
+      color: #2c3e50;
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 25px;
+      text-align: center;
+      position: relative;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .section h2::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 2px;
+    }
+
+    input, select {
+      width: 100%; 
+      padding: 18px 20px; 
+      margin-top: 16px;
+      border: 3px solid #e8f4fd; 
+      border-radius: 16px; 
+      font-size: 17px;
+      background: rgba(255, 255, 255, 0.9);
+      transition: all 0.4s ease;
+      font-weight: 500;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+      background: white;
+      transform: translateY(-2px);
+    }
+
+    button.action {
+      width: 100%;
+      padding: 18px;
+      margin-top: 24px;
+      background: linear-gradient(135deg, #667eea, #764ba2, #8b5fbf);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    button.action:hover { 
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+    }
+
+    button.action:active { 
+      transform: translateY(-1px) scale(0.98);
+    }
+
+    button.action:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Card animations */
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #studentList .card {
+      background: linear-gradient(135deg, #f8fafc, #e2e8f0, #cbd5e0);
+      border: 3px solid #e2e8f0;
+      padding: 20px; 
+      border-radius: 16px; 
+      margin-top: 16px; 
+      font-size: 16px;
+      font-weight: 600;
+      color: #2d3748;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    #studentList .card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 6px;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    #studentList .card:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+      border-color: #667eea;
+    }
+
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 20px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      animation: slideIn 0.5s ease-out;
+    }
+
+    th, td { 
+      border: none;
+      padding: 16px 14px; 
+      text-align: center; 
+      font-size: 16px;
+    }
+
+    th {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      background: rgba(255, 255, 255, 0.9);
+      color: #2d3748;
+      font-weight: 500;
+    }
+
+    tr:nth-child(even) td {
+      background: rgba(248, 250, 252, 0.9);
+    }
+
+    .total { 
+      margin-top: 24px; 
+      font-weight: 800; 
+      font-size: 19px;
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+      border-radius: 16px;
+      border: 3px solid rgba(102, 126, 234, 0.3);
+      color: #2d3748;
+      animation: slideIn 0.6s ease-out;
+    }
+
+    #attLog {
+      margin-top: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(72, 187, 120, 0.15), rgba(56, 178, 172, 0.15));
+      border-radius: 16px;
+      border-left: 6px solid #48BB78;
+      color: #2D3748;
+      font-weight: 700;
+      font-size: 16px;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    /* Responsive cho iPhone 14 Plus */
+    @media (max-width: 430px) {
+      .header {
+        padding: 20px;
+        font-size: 24px;
+      }
+      
+      .menu, .section { 
+        margin-left: 16px;
+        margin-right: 16px;
+        max-width: calc(100vw - 32px);
+      }
+      
+      .menu {
+        padding: 25px 0;
+        gap: 16px;
+      }
+      
+      .menu button { 
+        font-size: 16px; 
+        padding: 18px 24px;
+      }
+      
+      input, select, button.action { 
+        font-size: 16px;
+        padding: 16px 18px;
+      }
+      
+      th, td { 
+        font-size: 14px; 
+        padding: 12px 10px;
+      }
+      
+      .section {
+        padding: 24px;
+        border-radius: 20px;
+      }
+      
+      .section h2 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    📚 Quản lý Buổi Học
+  </div>
+
+  <div class="menu">
+    <button onclick="showSection('add')">➕ Thêm học sinh</button>
+    <button onclick="showSection('att')">✅ Điểm danh</button>
+    <button onclick="showSection('mgmt')">📊 Quản lý buổi học</button>
+  </div>
+
+  <!-- 1. Thêm học sinh -->
+  <div class="section" id="add">
+    <h2>Thêm học sinh</h2>
+    <input id="name" placeholder="Tên học sinh">
+    <input id="cls"  placeholder="Lớp">
+    <input id="fee"  type="number" placeholder="Học phí/buổi (VND)">
+    <button class="action" onclick="addStudent()">Lưu</button>
+    <div id="studentList"></div>
+  </div>
+
+  <!-- 2. Điểm danh -->
+  <div class="section" id="att">
+    <h2>Điểm danh buổi</h2>
+    <select id="attName"><option value="">-- Chọn học sinh --</option></select>
+    <button class="action" onclick="recordAtt(this)">Ghi nhận điểm danh</button>
+    <div id="attLog"></div>
+  </div>
+
+  <!-- 3. Quản lý buổi học -->
+  <div class="section" id="mgmt">
+    <h2>Quản lý buổi học</h2>
+    <select id="mgmtName"><option value="">-- Chọn học sinh --</option></select>
+    <select id="mgmtMonth">
+      <option value="">-- Tháng --</option>
+      <option value="1">Tháng 1</option>
+      <option value="2">Tháng 2</option>
+      <option value="3">Tháng 3</option>
+      <option value="4">Tháng 4</option>
+      <option value="5">Tháng 5</option>
+      <option value="6">Tháng 6</option>
+      <option value="7">Tháng 7</option>
+      <option value="8">Tháng 8</option>
+      <option value="9">Tháng 9</option>
+      <option value="10">Tháng 10</option>
+      <option value="11">Tháng 11</option>
+      <option value="12">Tháng 12</option>
+    </select>
+    <button class="action" onclick="viewMgmt()">Xem</button>
+    <div id="mgmtResult"></div>
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyUuqpLPYeI10corLf0mOIQrOD4r4l-p096zH3d4rjh1VCuQ2B6bvfIJ7qBrpYHWOLK/exec';
+
+    function showSection(id) {
+      ['add','att','mgmt'].forEach(s =>
+        document.getElementById(s).style.display = s === id ? 'block' : 'none'
+      );
+      if (id === 'add') loadStudents();
+      if (id === 'att') loadStudents('attName');
+      if (id === 'mgmt') loadStudents('mgmtName');
+      if (id === 'att') document.getElementById('attLog').innerHTML = '';
+    }
+
+    // Hiển thị học sinh dạng "Tên – Lớp" ở dropdown
+    function loadStudents(selectId) {
+      fetch(`${scriptURL}?action=getStudents`)
+        .then(r => r.json())
+        .then(arr => {
+          if (selectId) {
+            const sel = document.getElementById(selectId);
+            sel.innerHTML = '<option value="">-- Chọn học sinh --</option>';
+            arr.forEach(s => {
+              const o = document.createElement('option');
+              o.value = s.name + '|' + s.cls;
+              o.textContent = `${s.name} – ${s.cls}`;
+              sel.appendChild(o);
+            });
+          } else {
+            const wrap = document.getElementById('studentList');
+            wrap.innerHTML = '';
+            arr.forEach(s => {
+              const d = document.createElement('div');
+              d.className = 'card';
+              d.textContent = `${s.name} – Lớp ${s.cls} – ${formatVND(s.fee)}/buổi`;
+              wrap.appendChild(d);
+            });
+          }
+        });
+    }
+
+    // Thêm học sinh với loading spinner
+    function addStudent() {
+      const name = document.getElementById('name').value.trim();
+      const cls  = document.getElementById('cls').value.trim();
+      const fee  = document.getElementById('fee').value.trim();
+      if (!name || !cls || !fee) return alert('Nhập đầy đủ thông tin!');
+      
+      const btn = event.target;
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Đang lưu...';
+      
+      fetch(scriptURL, {
+        method: 'POST',
+        body: new URLSearchParams({ action:'addStudent', name, cls, fee })
+      }).then(() => {
+        alert('✅ Đã thêm thành công!');
+        document.getElementById('name').value = '';
+        document.getElementById('cls').value = '';
+        document.getElementById('fee').value = '';
+        loadStudents();
+      }).finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      });
+    }
+
+    // Hàm format ngày ra dd/MM/yyyy (chống ISO)
+    function formatDateVN(dateStr) {
+      if (!dateStr) return '';
+      if (dateStr.includes('/')) return dateStr;
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    }
+
+    // Hàm format tiền Việt
+    function formatVND(num) {
+      return Number(num).toLocaleString('vi-VN') + 'đ';
+    }
+
+    // Ghi điểm danh với loading spinner
+    function recordAtt(btn) {
+      const val = document.getElementById('attName').value;
+      if (!val) return alert('Chọn học sinh!');
+      const [name, cls] = val.split('|');
+      
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Đang ghi nhận...';
+      
+      fetch(scriptURL, {
+        method: 'POST',
+        body: new URLSearchParams({ action: 'recordAttendance', name, cls })
+      }).then(() => {
+        // Lấy ngày và thứ vừa ghi nhận
+        const now = new Date();
+        const weekdayArr = ['Chủ Nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7'];
+        const weekday = weekdayArr[now.getDay()];
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const yyyy = now.getFullYear();
+        const ngay = `${dd}/${mm}/${yyyy}`;
+        document.getElementById('attLog').innerHTML =
+          `<div style="text-align:center;">
+            <div style="font-size:20px;margin-bottom:10px;">✅ Ghi nhận thành công!</div>
+            <div style="font-size:18px;"><strong>${name}</strong> – ${cls}</div>
+            <div style="font-size:16px;margin-top:8px;">📅 ${ngay}, ${weekday}</div>
+          </div>`;
+      }).finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      });
+    }
+
+    // Quản lý buổi học với loading spinner
+    function viewMgmt() {
+      const val = document.getElementById('mgmtName').value;
+      const month = document.getElementById('mgmtMonth').value;
+      if (!val || !month) return alert('Chọn học sinh và tháng!');
+      const [name, cls] = val.split('|');
+      const year = new Date().getFullYear();
+      
+      const btn = event.target;
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Đang tải...';
+      
+      fetch(`${scriptURL}?action=getAttendance&name=${encodeURIComponent(name)}&cls=${encodeURIComponent(cls)}&month=${month}&year=${year}`)
+        .then(r => r.json())
+        .then(obj => {
+          let html = '<table><tr><th>Thứ</th><th>Ngày</th></tr>';
+          obj.sessions.forEach(s => {
+            html += `<tr><td>${s.weekday}</td><td>${formatDateVN(s.date)}</td></tr>`;
+          });
+          html += '</table>';
+          html += `<div class="total">Tổng buổi: <strong>${obj.sessions.length}</strong><br>Tổng phí: <strong>${formatVND(obj.total)}</strong></div>`;
+          document.getElementById('mgmtResult').innerHTML = html;
+        }).finally(() => {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        });
+    }
+
+    // Khởi tạo
+    showSection('add');
+  </script>
+</body>
+</html>
