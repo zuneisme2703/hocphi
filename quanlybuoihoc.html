@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>App Quản lý Học phí & Điểm danh</title>
+  <style>
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family: sans-serif; background: #f5f5f5; }
+    .menu {
+      display: flex; flex-direction: column; gap: 12px;
+      padding: 20px; max-width: 500px; margin: auto;
+    }
+    .menu button {
+      padding: 14px; font-size: 16px;
+      background: #4CAF50; color: white;
+      border: none; border-radius: 6px;
+      cursor: pointer; transition: background .2s, transform .2s;
+    }
+    .menu button:hover { background: #388E3C; transform: scale(1.03);}
+    .section {
+      display: none; max-width: 500px; margin: 12px auto;
+      background: white; padding: 18px;
+      border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    input, select, button.action {
+      width: 100%; padding: 10px; margin-top: 10px;
+      border: 1px solid #ccc; border-radius: 4px; font-size: 15px;
+    }
+    button.action {
+      background: #2196F3; color: white; border: none;
+      cursor: pointer; transition: background .2s, transform .2s;
+    }
+    button.action:hover { background: #1976D2; transform: scale(1.02);}
+    button.action:active { transform: scale(.98);}
+    #studentList .card {
+      background: #fcfcfc; border: 1px solid #ddd;
+      padding: 10px; border-radius: 4px; margin-top: 8px; font-size: 15px;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px;}
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 14px;}
+    .total { margin-top: 12px; font-weight: bold; font-size: 15px;}
+    @media (max-width: 480px) {
+      .menu, .section { max-width: 100vw; padding: 12px;}
+      .menu button { font-size: 15px; padding: 12px;}
+      input, select, button.action { font-size: 14px;}
+      th, td { font-size: 13px; padding: 6px;}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="menu">
+    <button onclick="showSection('add')">1. Thêm học sinh</button>
+    <button onclick="showSection('att')">2. Điểm danh</button>
+    <button onclick="showSection('mgmt')">3. Quản lý buổi học</button>
+  </div>
+
+  <!-- 1. Thêm học sinh -->
+  <div class="section" id="add">
+    <h2>Thêm học sinh</h2>
+    <input id="name" placeholder="Tên học sinh">
+    <input id="cls"  placeholder="Lớp">
+    <input id="fee"  type="number" placeholder="Học phí/buổi (VND)">
+    <button class="action" onclick="addStudent()">Lưu</button>
+    <div id="studentList"></div>
+  </div>
+
+  <!-- 2. Điểm danh -->
+  <div class="section" id="att">
+    <h2>Điểm danh buổi</h2>
+    <select id="attName"><option value="">-- Chọn học sinh --</option></select>
+    <button class="action" onclick="recordAtt(this)">Ghi nhận điểm danh</button>
+  </div>
+
+  <!-- 3. Quản lý buổi học -->
+  <div class="section" id="mgmt">
+    <h2>Quản lý buổi học</h2>
+    <select id="mgmtName"><option value="">-- Chọn học sinh --</option></select>
+    <select id="mgmtMonth">
+      <option value="">-- Tháng --</option>
+      <option value="1">Tháng 1</option>
+      <option value="2">Tháng 2</option>
+      <option value="3">Tháng 3</option>
+      <option value="4">Tháng 4</option>
+      <option value="5">Tháng 5</option>
+      <option value="6">Tháng 6</option>
+      <option value="7">Tháng 7</option>
+      <option value="8">Tháng 8</option>
+      <option value="9">Tháng 9</option>
+      <option value="10">Tháng 10</option>
+      <option value="11">Tháng 11</option>
+      <option value="12">Tháng 12</option>
+    </select>
+    <button class="action" onclick="viewMgmt()">Xem</button>
+    <div id="mgmtResult"></div>
+  </div>
+
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyUuqpLPYeI10corLf0mOIQrOD4r4l-p096zH3d4rjh1VCuQ2B6bvfIJ7qBrpYHWOLK/exec';
+
+    // Chuyển section
+    function showSection(id) {
+      ['add','att','mgmt'].forEach(s =>
+        document.getElementById(s).style.display = s === id ? 'block' : 'none'
+      );
+      if (id === 'add') loadStudents();
+      if (id === 'att') loadStudents('attName');
+      if (id === 'mgmt') loadStudents('mgmtName');
+    }
+
+    // Lấy danh sách học sinh, hiển thị dropdown dạng 'Tên học sinh - Lớp'
+    function loadStudents(selectId) {
+      fetch(`${scriptURL}?action=getStudents`)
+        .then(r => r.json())
+        .then(arr => {
+          if (selectId) {
+            const sel = document.getElementById(selectId);
+            sel.innerHTML = '<option value="">-- Chọn học sinh --</option>';
+            arr.forEach(s => {
+              const o = document.createElement('option');
+              o.value = s.name + '|' + s.cls;
+              o.textContent = `${s.name} – ${s.cls}`;
+              sel.appendChild(o);
+            });
+          } else {
+            // Hiển thị list dạng card
+            const wrap = document.getElementById('studentList');
+            wrap.innerHTML = '';
+            arr.forEach(s => {
+              const d = document.createElement('div');
+              d.className = 'card';
+              d.textContent = `${s.name} – Lớp ${s.cls} – ${s.fee} VND/buổi`;
+              wrap.appendChild(d);
+            });
+          }
+        });
+    }
+
+    // Thêm học sinh
+    function addStudent() {
+      const name = document.getElementById('name').value.trim();
+      const cls  = document.getElementById('cls').value.trim();
+      const fee  = document.getElementById('fee').value.trim();
+      if (!name || !cls || !fee) return alert('Nhập đầy đủ thông tin!');
+      fetch(scriptURL, {
+        method: 'POST',
+        body: new URLSearchParams({ action:'addStudent', name, cls, fee })
+      }).then(() => {
+        alert('✅ Đã thêm');
+        document.getElementById('name').value = '';
+        document.getElementById('cls').value = '';
+        document.getElementById('fee').value = '';
+        loadStudents();
+      });
+    }
+
+    // Ghi điểm danh
+    function recordAtt(btn) {
+      const val = document.getElementById('attName').value;
+      if (!val) return alert('Chọn học sinh!');
+      const [name, cls] = val.split('|');
+      btn.disabled = true;
+      fetch(scriptURL, {
+        method: 'POST',
+        body: new URLSearchParams({ action: 'recordAttendance', name, cls })
+      }).then(() => {
+        alert('✅ Đã điểm danh');
+      }).finally(() => btn.disabled = false);
+    }
+
+    // Xem quản lý buổi
+    function viewMgmt() {
+      const val = document.getElementById('mgmtName').value;
+      const month = document.getElementById('mgmtMonth').value;
+      if (!val || !month) return alert('Chọn học sinh và tháng!');
+      const [name, cls] = val.split('|');
+      const year = new Date().getFullYear();
+      fetch(`${scriptURL}?action=getAttendance&name=${encodeURIComponent(name)}&cls=${encodeURIComponent(cls)}&month=${month}&year=${year}`)
+        .then(r => r.json())
+        .then(obj => {
+          let html = '<table><tr><th>Thứ</th><th>Ngày</th></tr>';
+          obj.sessions.forEach(s => {
+            html += `<tr><td>${s.weekday}</td><td>${s.date}</td></tr>`;
+          });
+          html += '</table>';
+          html += `<div class="total">Tổng buổi: <strong>${obj.sessions.length}</strong> — Tổng phí: <strong>${obj.total} VND</strong></div>`;
+          document.getElementById('mgmtResult').innerHTML = html;
+        });
+    }
+
+    // Khởi tạo
+    showSection('add');
+  </script>
+</body>
+</html>
