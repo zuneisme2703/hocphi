@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Trình tạo Prompt & Gemini</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --accent: #22c55e;
+      --bg: #f9fafb;
+      --card: #ffffff;
+      --text: #374151;
+      --text-light: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 2rem 1rem;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.75rem;
+      color: var(--primary);
+    }
+    .card {
+      background: var(--card);
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: var(--text-light);
+    }
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      transition: border-color .2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+    .flex {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .flex > div { flex: 1; min-width: 150px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-accent:hover { background: #16a34a; }
+    .btn-add {
+      background: #fbbf24;
+      color: #1f2937;
+    }
+    .btn-add:hover { background: #f59e0b; }
+    .btn-remove {
+      background: transparent;
+      color: #ef4444;
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 0;
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+    }
+    .btn-remove:hover { color: #dc2626; }
+    .section {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+    #output {
+      background: #eff6ff;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #3b82f6;
+      white-space: pre-wrap;
+      color: var(--text);
+    }
+    @media (max-width: 600px) {
+      .flex { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧠 Trình tạo Prompt & Gemini</h1>
+
+    <!-- API Key -->
+    <div class="card">
+      <label for="apiKey">API Key</label>
+      <input type="text" id="apiKey" placeholder="Dán API Key (đã bật Generative Language API)">
+    </div>
+
+    <!-- Phần Chọn Môn & Lớp -->
+    <div class="card">
+      <div class="flex">
+        <div>
+          <label for="subject">Môn học</label>
+          <select id="subject">
+            <option>Toán</option>
+          </select>
+        </div>
+        <div>
+          <label for="grade">Lớp</label>
+          <select id="grade">
+            <option>Lớp 1</option>
+            <option>Lớp 2</option>
+            <option>Lớp 3</option>
+            <option>Lớp 4</option>
+            <option>Lớp 5</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phần Câu hỏi & yêu cầu thêm động -->
+    <div id="questions"></div>
+    <button class="btn btn-add" onclick="addSection()">➕ Thêm câu hỏi</button>
+
+    <!-- Nút Tạo và Sao chép -->
+    <div style="margin-top:1.5rem;">
+      <button class="btn btn-primary" onclick="generateAndSend()">🚀 Tạo Prompt & Gửi Gemini</button>
+      <button class="btn btn-accent" onclick="copyOutput()">📋 Sao chép Kết quả</button>
+    </div>
+
+    <!-- Kết quả hiển thị -->
+    <div id="output" style="margin-top:1.5rem;">Kết quả sẽ hiển thị ở đây...</div>
+  </div>
+
+  <script>
+    // Khởi tạo 1 section đầu
+    let count = 0;
+    addSection();
+
+    function addSection() {
+      count++;
+      const container = document.getElementById('questions');
+      const section = document.createElement('div');
+      section.className = 'card section';
+      section.innerHTML = `
+        <button class="btn-remove" onclick="removeSection(this)">✖</button>
+        <h2 style="font-size:1rem; color:var(--primary); margin-bottom:1rem;">Câu hỏi #${count}</h2>
+        <div class="flex">
+          <div>
+            <label>Loại câu hỏi</label>
+            <select class="questionType">
+              <option>Trả lời ngắn</option>
+              <option>Điền khuyết</option>
+              <option>Trắc nghiệm đúng/sai</option>
+              <option>Trắc nghiệm 4 đáp án</option>
+              <option>Tự luận</option>
+            </select>
+          </div>
+          <div>
+            <label>Mức độ</label>
+            <select class="difficulty">
+              <option>Nhận biết</option>
+              <option>Thông hiểu</option>
+              <option>Vận dụng</option>
+              <option>Vận dụng cao</option>
+            </select>
+          </div>
+          <div>
+            <label>Số lượng</label>
+            <input type="number" class="quantity" min="1" max="100" value="5">
+          </div>
+        </div>
+        <label>Yêu cầu thêm</label>
+        <textarea class="customRequest" rows="2" placeholder="Ví dụ: không dùng số thập phân, có hình minh họa..."></textarea>
+      `;
+      container.appendChild(section);
+    }
+
+    function removeSection(btn) {
+      btn.closest('.section').remove();
+    }
+
+    async function generateAndSend() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const subject = document.getElementById('subject').value.toLowerCase();
+      const grade   = document.getElementById('grade').value.toLowerCase();
+      const out     = document.getElementById('output');
+      if (!apiKey) return out.textContent = '❌ Vui lòng nhập API Key.';
+      out.textContent = '⏳ Đang tạo và gửi đến Gemini…';
+
+      // Sinh prompt
+      const sections = document.querySelectorAll('#questions .section');
+      const prompts = [...sections].map(sec => {
+        const type  = sec.querySelector('.questionType').value.toLowerCase();
+        const diff  = sec.querySelector('.difficulty').value.toLowerCase();
+        const qty   = sec.querySelector('.quantity').value;
+        const extra = sec.querySelector('.customRequest').value.trim();
+        let p = `Tạo ${qty} câu hỏi ${type} môn ${subject} ${grade} mức độ ${diff}`;
+        if (extra) p += `, ${extra}`;
+        return p + '.';
+      });
+      const finalPrompt = prompts.join('\n\n');
+
+      // Gửi tới Gemini (text-bison-001)
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generateText?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: { text: finalPrompt } })
+          }
+        );
+        const data = await res.json();
+        if (data.error) {
+          out.textContent = '❌ API Error:\n' + JSON.stringify(data.error, null, 2);
+        } else {
+          out.textContent = data.candidates[0].content;
+        }
+      } catch (err) {
+        out.textContent = '❌ Lỗi khi gọi Gemini:\n' + err;
+      }
+    }
+
+    function copyOutput() {
+      const text = document.getElementById('output').innerText;
+      navigator.clipboard.writeText(text)
+        .then(()=> alert('Đã sao chép vào clipboard!'))
+        .catch(()=> alert('Sao chép thất bại.'));
+    }
+  </script>
+</body>
+</html>
