@@ -14,16 +14,16 @@
       --primary-hover: #4338ca;
       --accent: #22c55e;
       --bg: #f9fafb;
-      --card: #ffffff;
+      --card: #fff;
       --text: #374151;
       --text-light: #6b7280;
+      --border: #e5e7eb;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height: 1.5;
       padding: 2rem 1rem;
     }
     .container {
@@ -38,10 +38,11 @@
     }
     .card {
       background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 0.75rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       padding: 1.5rem;
       margin-bottom: 1.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
     label {
       display: block;
@@ -49,18 +50,18 @@
       margin-bottom: 0.5rem;
       color: var(--text-light);
     }
-    input[type="text"], select, textarea {
+    input, select, textarea {
       width: 100%;
       padding: 0.75rem;
-      border: 1px solid #d1d5db;
+      border: 1px solid var(--border);
       border-radius: 0.5rem;
       font-size: 1rem;
       margin-bottom: 1rem;
       transition: border-color .2s;
     }
     input:focus, select:focus, textarea:focus {
-      border-color: var(--primary);
       outline: none;
+      border-color: var(--primary);
     }
     .flex {
       display: flex;
@@ -78,6 +79,8 @@
       font-size: 1rem;
       cursor: pointer;
       transition: background .2s;
+      margin-right: 0.5rem;
+      margin-top: 0.5rem;
     }
     .btn-primary {
       background: var(--primary);
@@ -95,14 +98,14 @@
     }
     .btn-add:hover { background: #f59e0b; }
     .btn-remove {
-      background: transparent;
-      color: #ef4444;
-      font-size: 1.25rem;
-      line-height: 1;
-      padding: 0;
       position: absolute;
-      top: 0.75rem;
-      right: 0.75rem;
+      top: 1rem;
+      right: 1rem;
+      background: transparent;
+      border: none;
+      font-size: 1.25rem;
+      color: #ef4444;
+      cursor: pointer;
     }
     .btn-remove:hover { color: #dc2626; }
     .section {
@@ -110,12 +113,13 @@
       margin-bottom: 1.5rem;
     }
     #output {
-      background: #eff6ff;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      border: 1px solid #3b82f6;
       white-space: pre-wrap;
+      background: #eff6ff;
+      border: 1px solid #3b82f6;
+      border-radius: 0.5rem;
+      padding: 1rem;
       color: var(--text);
+      margin-top: 1rem;
     }
     @media (max-width: 600px) {
       .flex { flex-direction: column; }
@@ -129,58 +133,62 @@
     <!-- API Key -->
     <div class="card">
       <label for="apiKey">API Key</label>
-      <input type="text" id="apiKey" placeholder="Dán API Key (đã bật Generative Language API)">
+      <input id="apiKey" type="text"
+        placeholder="Dán API Key (cho phép https://YOUR-USERNAME.github.io/*)">
     </div>
 
-    <!-- Phần Chọn Môn & Lớp -->
-    <div class="card">
-      <div class="flex">
-        <div>
-          <label for="subject">Môn học</label>
-          <select id="subject">
-            <option>Toán</option>
-          </select>
-        </div>
-        <div>
-          <label for="grade">Lớp</label>
-          <select id="grade">
-            <option>Lớp 1</option>
-            <option>Lớp 2</option>
-            <option>Lớp 3</option>
-            <option>Lớp 4</option>
-            <option>Lớp 5</option>
-          </select>
-        </div>
+    <!-- Chọn môn & lớp -->
+    <div class="card flex">
+      <div>
+        <label for="subject">Môn học</label>
+        <select id="subject">
+          <option>Toán</option>
+        </select>
+      </div>
+      <div>
+        <label for="grade">Lớp</label>
+        <select id="grade">
+          <option>Lớp 1</option>
+          <option>Lớp 2</option>
+          <option>Lớp 3</option>
+          <option>Lớp 4</option>
+          <option>Lớp 5</option>
+        </select>
       </div>
     </div>
 
-    <!-- Phần Câu hỏi & yêu cầu thêm động -->
+    <!-- Các phần câu hỏi động -->
     <div id="questions"></div>
     <button class="btn btn-add" onclick="addSection()">➕ Thêm câu hỏi</button>
 
-    <!-- Nút Tạo và Sao chép -->
-    <div style="margin-top:1.5rem;">
-      <button class="btn btn-primary" onclick="generateAndSend()">🚀 Tạo Prompt & Gửi Gemini</button>
-      <button class="btn btn-accent" onclick="copyOutput()">📋 Sao chép Kết quả</button>
+    <!-- Nút điều khiển -->
+    <div>
+      <button class="btn btn-primary" onclick="generateAndSend()">
+        🚀 Tạo Prompt & Gửi Gemini
+      </button>
+      <button class="btn btn-accent" onclick="copyOutput()">
+        📋 Sao chép Kết quả
+      </button>
     </div>
 
-    <!-- Kết quả hiển thị -->
-    <div id="output" style="margin-top:1.5rem;">Kết quả sẽ hiển thị ở đây...</div>
+    <!-- Output -->
+    <div id="output">Kết quả sẽ hiển thị ở đây…</div>
   </div>
 
   <script>
-    // Khởi tạo 1 section đầu
     let count = 0;
     addSection();
 
     function addSection() {
       count++;
       const container = document.getElementById('questions');
-      const section = document.createElement('div');
-      section.className = 'card section';
-      section.innerHTML = `
+      const sec = document.createElement('div');
+      sec.className = 'card section';
+      sec.innerHTML = `
         <button class="btn-remove" onclick="removeSection(this)">✖</button>
-        <h2 style="font-size:1rem; color:var(--primary); margin-bottom:1rem;">Câu hỏi #${count}</h2>
+        <h2 style="font-size:1rem; color:var(--primary); margin-bottom:1rem;">
+          Câu hỏi #${count}
+        </h2>
         <div class="flex">
           <div>
             <label>Loại câu hỏi</label>
@@ -207,9 +215,10 @@
           </div>
         </div>
         <label>Yêu cầu thêm</label>
-        <textarea class="customRequest" rows="2" placeholder="Ví dụ: không dùng số thập phân, có hình minh họa..."></textarea>
+        <textarea class="customRequest" rows="2"
+          placeholder="Ví dụ: không dùng số thập phân, có hình minh họa…"></textarea>
       `;
-      container.appendChild(section);
+      container.appendChild(sec);
     }
 
     function removeSection(btn) {
@@ -217,16 +226,20 @@
     }
 
     async function generateAndSend() {
-      const apiKey = document.getElementById('apiKey').value.trim();
+      const key     = document.getElementById('apiKey').value.trim();
       const subject = document.getElementById('subject').value.toLowerCase();
       const grade   = document.getElementById('grade').value.toLowerCase();
-      const out     = document.getElementById('output');
-      if (!apiKey) return out.textContent = '❌ Vui lòng nhập API Key.';
-      out.textContent = '⏳ Đang tạo và gửi đến Gemini…';
+      const outEl   = document.getElementById('output');
 
-      // Sinh prompt
-      const sections = document.querySelectorAll('#questions .section');
-      const prompts = [...sections].map(sec => {
+      if (!key) {
+        outEl.textContent = '❌ Vui lòng nhập API Key và cho phép referrer.';
+        return;
+      }
+      outEl.textContent = '⏳ Đang gọi Gemini…';
+
+      // Tạo prompt
+      const secs = document.querySelectorAll('#questions .section');
+      const prompts = Array.from(secs).map(sec => {
         const type  = sec.querySelector('.questionType').value.toLowerCase();
         const diff  = sec.querySelector('.difficulty').value.toLowerCase();
         const qty   = sec.querySelector('.quantity').value;
@@ -234,35 +247,34 @@
         let p = `Tạo ${qty} câu hỏi ${type} môn ${subject} ${grade} mức độ ${diff}`;
         if (extra) p += `, ${extra}`;
         return p + '.';
-      });
-      const finalPrompt = prompts.join('\n\n');
+      }).join('\n\n');
 
-      // Gửi tới Gemini (text-bison-001)
+      // Gọi đúng endpoint v1beta1
       try {
         const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/text-bison-001:generateText?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta1/models/text-bison-001:generateText?key=${key}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: { text: finalPrompt } })
+            body: JSON.stringify({ prompt: { text: prompts } })
           }
         );
         const data = await res.json();
         if (data.error) {
-          out.textContent = '❌ API Error:\n' + JSON.stringify(data.error, null, 2);
+          outEl.textContent = '❌ API Error:\n' + JSON.stringify(data.error, null, 2);
         } else {
-          out.textContent = data.candidates[0].content;
+          outEl.textContent = data.candidates[0].content;
         }
       } catch (err) {
-        out.textContent = '❌ Lỗi khi gọi Gemini:\n' + err;
+        outEl.textContent = '❌ Lỗi khi gọi API:\n' + err;
       }
     }
 
     function copyOutput() {
       const text = document.getElementById('output').innerText;
       navigator.clipboard.writeText(text)
-        .then(()=> alert('Đã sao chép vào clipboard!'))
-        .catch(()=> alert('Sao chép thất bại.'));
+        .then(() => alert('Đã sao chép!'))
+        .catch(() => alert('Sao chép thất bại.'));
     }
   </script>
 </body>
