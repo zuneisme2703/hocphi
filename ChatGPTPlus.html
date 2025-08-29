@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Legit Shop – ChatGPT Plus 150kr</title>
+  <style>
+    :root {
+      --primary: #1d4ed8; /* xanh dương tươi */
+      --secondary: #16a34a; /* xanh lá checkmark */
+      --bg: #f9fafb; /* nền sáng */
+      --card: #ffffff;
+      --border: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+    }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg); color: var(--text);
+    }
+    .wrap { min-height: 100vh; display:flex; align-items:center; justify-content:center; padding: 20px; }
+    .app { width: 100%; max-width: 480px; background: var(--card);
+           border: 1px solid var(--border); border-radius: 16px; padding: 20px;
+           box-shadow: 0 4px 20px rgba(0,0,0,.06); text-align:center; }
+    .logo { width: 120px; margin: 0 auto 16px; }
+    .logo img { max-width: 100%; height: auto; display:block; margin:0 auto; }
+    h1 { font-size: 22px; margin: 0 0 6px; color: var(--primary); }
+    .sub { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+    .card { margin-bottom: 20px; text-align:left; }
+    h2 { font-size: 18px; margin: 0 0 8px; color: var(--secondary); }
+    .hint { color: var(--muted); font-size: 13px; margin: 0 0 12px; line-height: 1.4; }
+    .btn { appearance: none; border: none; background: var(--primary);
+           color: white; padding: 12px 14px; border-radius: 12px; font-weight: 600; cursor: pointer;
+           width: 100%; font-size: 15px; transition: background .2s ease; }
+    .btn:hover { background: #1e40af; }
+    .ok { background: var(--secondary); }
+    .ok:hover { background: #15803d; }
+    .row { display: flex; gap: 10px; }
+    .input { flex: 1; border: 1px solid var(--border); padding: 12px; border-radius: 12px;
+             font-size: 15px; outline: none; }
+    .input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(29,78,216,0.2); }
+    .tiny { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    .footer { font-size: 12px; color: var(--muted); text-align:center; margin-top: 20px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <main class="app">
+    <div class="logo">
+      <!-- Chèn logo Legit Shop ở đây -->
+      <img src="logo.png" alt="Legit Shop Logo">
+    </div>
+    <h1>Legit Shop – ChatGPT ChatGPT Plus 150k</h1>
+    <div class="sub">Nâng cấp ChatGPT Plus nhanh chóng, tiện lợi!</div>
+
+    <div class="card">
+      <h2>1) Đăng nhập ChatGPT</h2>
+      <p class="hint">B1. Thực hiện đăng nhập tài khoản ChatGPT cần nâng cấp Plus!.</p>
+      <button id="btnLogin" class="btn" type="button">Mở trang đăng nhập</button>
+      <p class="tiny">Đường dẫn: <code>https://chatgpt.com/auth/login</code></p>
+    </div>
+
+    <div class="card">
+      <h2>2) Promo Code → Chuyển hướng</h2>
+      <p class="hint">Liên hệ mua promo coe từ Shop!<code>chatgpt.com/?promoCode=...</code>.</p>
+      <div class="row">
+        <input id="promo" class="input" placeholder="VD: S7JQYN2DUN6RUYZM" aria-label="Promo code" />
+        <button id="btnGo" class="btn ok" type="button">OK</button>
+      </div>
+          </div>
+
+    <div class="footer">Code by Đức Dũng - Legit Shop! Zalo: 0816522665</div>
+  </main>
+</div>
+
+<script>
+  const $ = (s)=>document.querySelector(s);
+
+  $('#btnLogin').addEventListener('click', () => {
+    location.href = 'https://chatgpt.com/auth/login';
+  });
+
+  function goPromo(){
+    const code = ($('#promo').value||'').trim();
+    if (!code) { alert('Vui lòng nhập promo code.'); $('#promo').focus(); return; }
+    const url = 'https://chatgpt.com/?promoCode=' + encodeURIComponent(code);
+    location.href = url;
+  }
+
+  $('#btnGo').addEventListener('click', goPromo);
+  $('#promo').addEventListener('keydown', (e)=>{
+    if(e.key==='Enter') goPromo();
+  });
+</script>
+</body>
+</html>
